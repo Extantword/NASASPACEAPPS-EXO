@@ -5,6 +5,11 @@ backend/.env
 backend/venv/
 backend/.pytest_cache/
 backend/notebooks/.ipynb_checkpoints/
+*.ipynb_checkpoints/
+*env
+*venv*
+env/
+
 
 # Frontend
 frontend/node_modules/
