@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exoplanet ML WebSocket Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f8;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 0;
+        }
+        .log {
+            height: 300px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 10px;
+            font-family: monospace;
+            margin-top: 10px;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            width: 100%;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .success {
+            color: #27ae60;
+        }
+        .error {
+            color: #e74c3c;
+        }
+        .warning {
+            color: #f39c12;
+        }
+        .info {
+            color: #2980b9;
+        }
+        .connection-status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        .connected {
+            background-color: #27ae60;
+            color: white;
+        }
+        .disconnected {
+            background-color: #e74c3c;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Exoplanet ML WebSocket Demo</h1>
+    
+    <div class="container">
+        <div class="card">
+            <h2>WebSocket Connection</h2>
+            <div>
+                <label>Server URL:</label>
+                <input type="text" id="server-url" value="ws://localhost:8000/api/v1/ws/ws">
+            </div>
+            <div style="margin-top: 10px;">
+                <label>Status: <span id="connection-status" class="connection-status disconnected">Disconnected</span></label>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="connect-btn">Connect</button>
+                    <button id="disconnect-btn" disabled>Disconnect</button>
+                </div>
+            </div>
+            <h3>Message Log</h3>
+            <div id="message-log" class="log"></div>
+        </div>
+        
+        <div class="card">
+            <h2>ML Classification</h2>
+            <div class="controls">
+                <div class="form-group">
+                    <label for="model-type">Model Type:</label>
+                    <select id="model-type">
+                        <option value="random_forest">Random Forest</option>
+                        <option value="neural_network">Neural Network</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Features:</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label for="feature-period">Period (days):</label>
+                            <input type="number" id="feature-period" step="0.1" value="10.5">
+                        </div>
+                        <div>
+                            <label for="feature-radius">Radius (Earth radii):</label>
+                            <input type="number" id="feature-radius" step="0.1" value="2.5">
+                        </div>
+                        <div>
+                            <label for="feature-temperature">Temperature (K):</label>
+                            <input type="number" id="feature-temperature" step="1" value="800">
+                        </div>
+                        <div>
+                            <label for="feature-mass">Mass (Earth masses):</label>
+                            <input type="number" id="feature-mass" step="0.1" value="5.2">
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="classify-btn" disabled>Classify</button>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <h3>Classification Result</h3>
+                <div id="classification-result" class="log"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Live ML Stream</h2>
+        <div class="container">
+            <div>
+                <div class="controls">
+                    <div class="form-group">
+                        <label for="stream-model-type">Model Type:</label>
+                        <select id="stream-model-type">
+                            <option value="random_forest">Random Forest</option>
+                            <option value="neural_network">Neural Network</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="stream-interval">Update Interval (seconds):</label>
+                        <input type="number" id="stream-interval" min="0.5" step="0.1" value="1.0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="stream-duration">Stream Duration (seconds):</label>
+                        <input type="number" id="stream-duration" min="5" step="1" value="30">
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button id="start-stream-btn" disabled>Start Stream</button>
+                        <button id="stop-stream-btn" disabled>Stop Stream</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h3>Stream Log</h3>
+                <div id="stream-log" class="log"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // DOM Elements
+        const serverUrlInput = document.getElementById('server-url');
+        const connectBtn = document.getElementById('connect-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const connectionStatus = document.getElementById('connection-status');
+        const messageLog = document.getElementById('message-log');
+        const classifyBtn = document.getElementById('classify-btn');
+        const classificationResult = document.getElementById('classification-result');
+        const startStreamBtn = document.getElementById('start-stream-btn');
+        const stopStreamBtn = document.getElementById('stop-stream-btn');
+        const streamLog = document.getElementById('stream-log');
+        
+        // WebSocket connection
+        let ws = null;
+        let activeStreamId = null;
+        
+        // Connect to WebSocket server
+        connectBtn.addEventListener('click', () => {
+            const serverUrl = serverUrlInput.value;
+            
+            try {
+                ws = new WebSocket(serverUrl);
+                
+                ws.onopen = () => {
+                    logMessage('Connected to server', 'success');
+                    connectionStatus.textContent = 'Connected';
+                    connectionStatus.classList.remove('disconnected');
+                    connectionStatus.classList.add('connected');
+                    
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    classifyBtn.disabled = false;
+                    startStreamBtn.disabled = false;
+                };
+                
+                ws.onclose = () => {
+                    logMessage('Disconnected from server', 'warning');
+                    connectionStatus.textContent = 'Disconnected';
+                    connectionStatus.classList.remove('connected');
+                    connectionStatus.classList.add('disconnected');
+                    
+                    connectBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                    classifyBtn.disabled = true;
+                    startStreamBtn.disabled = true;
+                    stopStreamBtn.disabled = true;
+                    
+                    ws = null;
+                    if (activeStreamId) {
+                        activeStreamId = null;
+                    }
+                };
+                
+                ws.onerror = (error) => {
+                    logMessage(`WebSocket error: ${error.message}`, 'error');
+                };
+                
+                ws.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        
+                        if (message.type === 'pong') {
+                            // Ignore pong responses
+                            return;
+                        } else if (message.type === 'ml_response') {
+                            handleClassificationResponse(message);
+                        } else if (message.type === 'stream_data') {
+                            handleStreamData(message);
+                        } else if (message.type === 'stream_status') {
+                            handleStreamStatus(message);
+                        } else if (message.type === 'error') {
+                            logMessage(`Error: ${message.message}`, 'error', messageLog);
+                        } else {
+                            logMessage(`Received: ${JSON.stringify(message)}`, 'info', messageLog);
+                        }
+                    } catch (error) {
+                        logMessage(`Error parsing message: ${error.message}`, 'error', messageLog);
+                    }
+                };
+                
+                // Start ping interval to keep connection alive
+                startPingInterval();
+                
+            } catch (error) {
+                logMessage(`Connection error: ${error.message}`, 'error');
+            }
+        });
+        
+        // Disconnect from WebSocket server
+        disconnectBtn.addEventListener('click', () => {
+            if (ws) {
+                ws.close();
+            }
+        });
+        
+        // Classify button handler
+        classifyBtn.addEventListener('click', () => {
+            if (!ws) {
+                logMessage('Not connected to server', 'error');
+                return;
+            }
+            
+            try {
+                const modelType = document.getElementById('model-type').value;
+                const features = {
+                    period: parseFloat(document.getElementById('feature-period').value),
+                    radius: parseFloat(document.getElementById('feature-radius').value),
+                    temperature: parseFloat(document.getElementById('feature-temperature').value),
+                    mass: parseFloat(document.getElementById('feature-mass').value)
+                };
+                
+                const requestId = `req_${Date.now()}`;
+                
+                const request = {
+                    type: 'ml_request',
+                    request_id: requestId,
+                    model_type: modelType,
+                    features: features
+                };
+                
+                ws.send(JSON.stringify(request));
+                logMessage(`Sent classification request: ${JSON.stringify(request)}`, 'info');
+                
+                // Clear previous result
+                classificationResult.innerHTML = '<div>Processing...</div>';
+                
+            } catch (error) {
+                logMessage(`Error sending request: ${error.message}`, 'error');
+            }
+        });
+        
+        // Start stream button handler
+        startStreamBtn.addEventListener('click', () => {
+            if (!ws) {
+                logMessage('Not connected to server', 'error');
+                return;
+            }
+            
+            try {
+                const modelType = document.getElementById('stream-model-type').value;
+                const interval = parseFloat(document.getElementById('stream-interval').value);
+                const duration = parseInt(document.getElementById('stream-duration').value);
+                
+                const streamId = `stream_${Date.now()}`;
+                activeStreamId = streamId;
+                
+                // Connect to model-specific WebSocket if we're on general endpoint
+                const currentUrl = serverUrlInput.value;
+                if (!currentUrl.includes('/ml/')) {
+                    // Disconnect from current socket
+                    const modelUrl = currentUrl.replace('/ws', '/ml/' + modelType);
+                    serverUrlInput.value = modelUrl;
+                    
+                    // Reconnect to model-specific endpoint
+                    disconnectBtn.click();
+                    setTimeout(() => {
+                        connectBtn.click();
+                        
+                        // Wait for connection and then send start stream
+                        const checkConnection = setInterval(() => {
+                            if (ws && ws.readyState === WebSocket.OPEN) {
+                                clearInterval(checkConnection);
+                                sendStartStream(streamId, modelType, interval, duration);
+                            }
+                        }, 100);
+                    }, 300);
+                } else {
+                    sendStartStream(streamId, modelType, interval, duration);
+                }
+                
+            } catch (error) {
+                logMessage(`Error starting stream: ${error.message}`, 'error');
+            }
+        });
+        
+        function sendStartStream(streamId, modelType, interval, duration) {
+            const request = {
+                type: 'start_stream',
+                stream_id: streamId,
+                parameters: {
+                    interval: interval,
+                    duration: duration,
+                    feature_ranges: {
+                        period: [0.5, 100.0],
+                        radius: [0.1, 15.0],
+                        mass: [0.1, 20.0],
+                        temperature: [200, 2000]
+                    }
+                }
+            };
+            
+            ws.send(JSON.stringify(request));
+            logMessage(`Started stream: ${streamId}`, 'info', streamLog);
+            
+            startStreamBtn.disabled = true;
+            stopStreamBtn.disabled = false;
+        }
+        
+        // Stop stream button handler
+        stopStreamBtn.addEventListener('click', () => {
+            if (!ws || !activeStreamId) {
+                logMessage('No active stream to stop', 'warning', streamLog);
+                return;
+            }
+            
+            try {
+                const request = {
+                    type: 'stop_stream',
+                    stream_id: activeStreamId
+                };
+                
+                ws.send(JSON.stringify(request));
+                logMessage(`Stopping stream: ${activeStreamId}`, 'info', streamLog);
+                
+            } catch (error) {
+                logMessage(`Error stopping stream: ${error.message}`, 'error', streamLog);
+            }
+        });
+        
+        // Handle classification response
+        function handleClassificationResponse(message) {
+            const result = message.result;
+            
+            if (!result) {
+                logMessage('Invalid classification response', 'error');
+                return;
+            }
+            
+            const prediction = result.prediction;
+            const confidence = (result.confidence * 100).toFixed(1);
+            const probabilities = result.probabilities;
+            
+            let predictionClass = '';
+            switch (prediction) {
+                case 'CONFIRMED':
+                    predictionClass = 'success';
+                    break;
+                case 'CANDIDATE':
+                    predictionClass = 'warning';
+                    break;
+                case 'FALSE_POSITIVE':
+                    predictionClass = 'error';
+                    break;
+            }
+            
+            const resultHtml = `
+                <div>
+                    <h4>Prediction: <span class="${predictionClass}">${prediction}</span></h4>
+                    <div>Confidence: ${confidence}%</div>
+                    <div>Probabilities:</div>
+                    <ul>
+                        <li>CONFIRMED: ${(probabilities.CONFIRMED * 100).toFixed(1)}%</li>
+                        <li>CANDIDATE: ${(probabilities.CANDIDATE * 100).toFixed(1)}%</li>
+                        <li>FALSE_POSITIVE: ${(probabilities.FALSE_POSITIVE * 100).toFixed(1)}%</li>
+                    </ul>
+                </div>
+            `;
+            
+            classificationResult.innerHTML = resultHtml;
+            logMessage(`Received classification: ${prediction} (${confidence}%)`, 'success');
+        }
+        
+        // Handle stream data
+        function handleStreamData(message) {
+            if (message.event === 'started') {
+                logMessage(`Stream ${message.stream_id} started with model ${message.model_type}`, 'info', streamLog);
+                return;
+            }
+            
+            if (message.event === 'completed') {
+                logMessage(`Stream ${message.stream_id} completed`, 'success', streamLog);
+                activeStreamId = null;
+                startStreamBtn.disabled = false;
+                stopStreamBtn.disabled = true;
+                return;
+            }
+            
+            if (message.event === 'cancelled') {
+                logMessage(`Stream ${message.stream_id} was cancelled`, 'warning', streamLog);
+                activeStreamId = null;
+                startStreamBtn.disabled = false;
+                stopStreamBtn.disabled = true;
+                return;
+            }
+            
+            // Regular prediction data
+            const prediction = message.prediction;
+            const confidence = message.confidence;
+            const features = message.features;
+            
+            let predictionClass = '';
+            switch (prediction) {
+                case 'CONFIRMED':
+                    predictionClass = 'success';
+                    break;
+                case 'CANDIDATE':
+                    predictionClass = 'warning';
+                    break;
+                case 'FALSE_POSITIVE':
+                    predictionClass = 'error';
+                    break;
+            }
+            
+            const streamDataHtml = `
+                <div>
+                    <span class="${predictionClass}">${prediction}</span>
+                    (${(confidence * 100).toFixed(1)}%) -
+                    Period: ${features.period.toFixed(1)},
+                    Radius: ${features.radius.toFixed(1)},
+                    Temp: ${features.temperature.toFixed(0)}K
+                    ${message.time_remaining ? `(${message.time_remaining}s remaining)` : ''}
+                </div>
+            `;
+            
+            logMessage(streamDataHtml, null, streamLog, false);
+        }
+        
+        // Handle stream status updates
+        function handleStreamStatus(message) {
+            if (message.status === 'stopped') {
+                logMessage(`Stream ${message.stream_id} stopped`, 'warning', streamLog);
+                activeStreamId = null;
+                startStreamBtn.disabled = false;
+                stopStreamBtn.disabled = true;
+            } else if (message.status === 'all_stopped') {
+                logMessage('All streams stopped', 'warning', streamLog);
+                activeStreamId = null;
+                startStreamBtn.disabled = false;
+                stopStreamBtn.disabled = true;
+            } else if (message.status === 'started') {
+                logMessage(`Stream ${message.stream_id} started with model ${message.model_type}`, 'info', streamLog);
+                activeStreamId = message.stream_id;
+            }
+        }
+        
+        // Log message to specified element
+        function logMessage(message, type = null, target = messageLog, escape = true) {
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            
+            if (type) {
+                div.className = type;
+            }
+            
+            if (escape) {
+                div.textContent = `[${timestamp}] ${message}`;
+            } else {
+                div.innerHTML = `[${timestamp}] ${message}`;
+            }
+            
+            target.appendChild(div);
+            target.scrollTop = target.scrollHeight;
+        }
+        
+        // Send periodic pings to keep connection alive
+        function startPingInterval() {
+            const pingInterval = setInterval(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: 'ping' }));
+                } else {
+                    clearInterval(pingInterval);
+                }
+            }, 30000); // Send ping every 30 seconds
+        }
+    </script>
+</body>
+</html>
