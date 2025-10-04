@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🪐 Exoplanet Hunter</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e3f2fd 0%, #ede7f6 100%);
+      padding: 20px;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    h1 {
+      font-weight: 400;
+      color: #1565c0;
+      font-size: 2.5em;
+    }
+    .subtitle { color: #5e35b1; opacity: 0.8; }
+
+    .input-section {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+    }
+    textarea {
+      width: 100%;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 1em;
+      min-height: 100px;
+      resize: vertical;
+    }
+    textarea:focus { outline: none; border-color: #1565c0; }
+    .button-container { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+      padding: 12px 25px;
+      transition: 0.2s;
+    }
+    .submit-btn {
+      background: linear-gradient(135deg, #1565c0, #5e35b1);
+      color: white;
+      font-weight: 500;
+    }
+    .submit-btn:hover { transform: translateY(-2px); }
+    .secondary-btn {
+      background: #eee;
+      color: #555;
+    }
+
+    /* Console */
+    .console-container {
+      background: #1e1e1e;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .console-header {
+      background: #2d2d2d;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #ccc;
+      font-size: 0.9em;
+    }
+    .console-content {
+      padding: 20px;
+      font-family: monospace;
+      color: #ddd;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .console-line {
+      margin-bottom: 8px;
+      display: flex;
+      gap: 10px;
+    }
+    .console-timestamp { color: #777; }
+    .console-prompt { font-weight: bold; }
+
+    /* Results */
+    .results-section {
+      display: none;
+      margin-top: 40px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      padding-bottom: 40px;
+    }
+    .results-header {
+      background: linear-gradient(135deg, #1565c0, #5e35b1);
+      color: white;
+      padding: 20px 30px;
+      font-size: 1.3em;
+      border-radius: 12px 12px 0 0;
+    }
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 20px;
+      margin: 30px;
+    }
+    .metric {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      flex: 1;
+      min-width: 180px;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .metric-value {
+      font-size: 2em;
+      font-weight: bold;
+      color: #1565c0;
+    }
+    .charts {
+      margin: 0 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+    }
+    canvas {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🪐 Exoplanet Hunter</h1>
+    <p class="subtitle">Crea y entrena modelos para detectar exoplanetas</p>
+  </header>
+
+  <div class="input-section">
+    <label>Describe el modelo que quieres crear:</label>
+    <textarea id="promptInput" placeholder="Ej: Crea un autoencoder que detecte anomalías en curvas de luz"></textarea>
+    <div class="button-container">
+      <button class="submit-btn" id="submitBtn" onclick="startAgent()">Crear Modelo</button>
+      <button class="secondary-btn" onclick="clearLog()">Limpiar Consola</button>
+      <button class="secondary-btn" id="exportBtn" onclick="exportResults()" disabled>Exportar Resultados</button>
+    </div>
+  </div>
+
+  <div class="console-container">
+    <div class="console-header">
+      <span>Terminal de Agente</span>
+      <span id="statusBadge"></span>
+    </div>
+    <div class="console-content" id="consoleContent">
+      <div style="color:#888;text-align:center;margin-top:100px;">
+        ⬢ Sistema en espera...
+      </div>
+    </div>
+  </div>
+
+  <div class="results-section" id="resultsSection">
+    <div class="results-header">📊 Resultados del Entrenamiento</div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-value" id="accValue">–</div><div>Accuracy</div></div>
+      <div class="metric"><div class="metric-value" id="lossValue">–</div><div>Loss</div></div>
+      <div class="metric"><div class="metric-value" id="precisionValue">–</div><div>Precision</div></div>
+      <div class="metric"><div class="metric-value" id="recallValue">–</div><div>Recall</div></div>
+    </div>
+    <div class="charts">
+      <canvas id="trainingChart"></canvas>
+      <canvas id="accuracyChart"></canvas>
+      <canvas id="errorDistChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    let isRunning = false;
+    let logHistory = [];
+
+    function startAgent() {
+      const prompt = document.getElementById('promptInput').value.trim();
+      if (!prompt) return alert('Por favor ingresa un prompt');
+      if (isRunning) return;
+      isRunning = true;
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('exportBtn').disabled = true;
+      document.getElementById('resultsSection').style.display = 'none';
+      document.getElementById('consoleContent').innerHTML = '';
+      showStatus(true);
+
+      simulateAgentActivity(prompt);
+    }
+
+    function simulateAgentActivity(prompt) {
+      const steps = [
+        { type: 'thinking', icon: '💭', content: `Analizando prompt: "${prompt}"` },
+        { type: 'thinking', icon: '💭', content: 'Identificando variables relevantes...' },
+        { type: 'action', icon: '⚙️', content: 'Diseñando arquitectura del modelo...' },
+        { type: 'tool', icon: '🔧', content: 'Cargando datasets astronómicos...' },
+        { type: 'action', icon: '🧠', content: 'Entrenando modelo...' },
+        { type: 'thinking', icon: '💭', content: 'Ajustando hiperparámetros...' },
+        { type: 'success', icon: '✅', content: 'Entrenamiento completado con éxito' }
+      ];
+
+      let delay = 0;
+      steps.forEach((s, i) => {
+        setTimeout(() => {
+          addConsoleLine(s.type, s.icon, s.content);
+          if (i === steps.length - 1) {
+            finishTraining();
+          }
+        }, delay);
+        delay += 1500;
+      });
+    }
+
+    function addConsoleLine(type, icon, content) {
+      const consoleContent = document.getElementById('consoleContent');
+      const line = document.createElement('div');
+      line.className = `console-line ${type}`;
+      const timestamp = new Date().toLocaleTimeString('es-ES', { hour12: false });
+      line.innerHTML = `<span class="console-timestamp">[${timestamp}]</span><span class="console-prompt">${icon}</span><span>${content}</span>`;
+      consoleContent.appendChild(line);
+      consoleContent.scrollTop = consoleContent.scrollHeight;
+    }
+
+    function showStatus(running) {
+      document.getElementById('statusBadge').innerHTML = running ? '⏳ Procesando...' : '';
+    }
+
+    function clearLog() {
+      logHistory = [];
+      document.getElementById('consoleContent').innerHTML = '<div style="color:#888;text-align:center;margin-top:100px;">⬢ Sistema en espera...</div>';
+      document.getElementById('exportBtn').disabled = true;
+    }
+
+    function exportResults() {
+      const prompt = document.getElementById('promptInput').value;
+      const exportData = {
+        prompt,
+        timestamp: new Date().toISOString(),
+        logs: logHistory
+      };
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `exoplanet_model_${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function finishTraining() {
+      isRunning = false;
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('exportBtn').disabled = false;
+      showStatus(false);
+      showResults();
+    }
+
+    function showResults() {
+      document.getElementById('resultsSection').style.display = 'block';
+
+      // Generar métricas simuladas
+      const acc = (Math.random() * 0.1 + 0.9).toFixed(3);
+      const loss = (Math.random() * 0.05 + 0.02).toFixed(3);
+      const precision = (Math.random() * 0.08 + 0.88).toFixed(3);
+      const recall = (Math.random() * 0.07 + 0.9).toFixed(3);
+      document.getElementById('accValue').textContent = acc;
+      document.getElementById('lossValue').textContent = loss;
+      document.getElementById('precisionValue').textContent = precision;
+      document.getElementById('recallValue').textContent = recall;
+
+      // Gráfica de entrenamiento
+      const epochs = Array.from({length: 10}, (_, i) => i + 1);
+      const lossValues = epochs.map(e => 0.15 * Math.exp(-0.3 * e) + Math.random()*0.01);
+      const accValues = epochs.map(e => 0.8 + 0.02*e + Math.random()*0.02);
+
+      new Chart(document.getElementById('trainingChart'), {
+        type: 'line',
+        data: {
+          labels: epochs,
+          datasets: [
+            { label: 'Loss', data: lossValues, borderColor: '#ef5350', fill: false },
+            { label: 'Accuracy', data: accValues, borderColor: '#43a047', fill: false }
+          ]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Evolución del Entrenamiento' } } }
+      });
+
+      new Chart(document.getElementById('accuracyChart'), {
+        type: 'bar',
+        data: {
+          labels: ['Train', 'Validation', 'Test'],
+          datasets: [{ label: 'Accuracy', data: [acc-0.02, acc-0.01, acc], backgroundColor: '#42a5f5' }]
+        },
+        options: { plugins: { title: { display: true, text: 'Accuracy por Conjunto' } }, scales: { y: { min: 0, max: 1 } } }
+      });
+
+      new Chart(document.getElementById('errorDistChart'), {
+        type: 'radar',
+        data: {
+          labels: ['Falsos Positivos', 'Falsos Negativos', 'Verdaderos Positivos', 'Verdaderos Negativos'],
+          datasets: [{
+            label: 'Distribución de Errores',
+            data: [10, 8, 72, 90].map(v => v * Math.random() * 0.02 + v),
+            backgroundColor: 'rgba(93, 64, 182, 0.2)',
+            borderColor: '#5e35b1'
+          }]
+        },
+        options: { plugins: { title: { display: true, text: 'Distribución de Errores' } } }
+      });
+    }
+  </script>
+</body>
+</html>
