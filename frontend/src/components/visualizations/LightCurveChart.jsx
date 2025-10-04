@@ -115,52 +115,6 @@ const LightCurveChart = ({
     setTransitMarkers(transits);
   };
 
-  const handleExportPNG = () => {
-    if (chartRef.current) {
-      const svg = chartRef.current.querySelector('svg');
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      const data = new XMLSerializer().serializeToString(svg);
-      const DOMURL = window.URL || window.webkitURL || window;
-      
-      const img = new Image();
-      const svgBlob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
-      const url = DOMURL.createObjectURL(svgBlob);
-      
-      img.onload = function () {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        DOMURL.revokeObjectURL(url);
-        
-        const imgURI = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
-        const link = document.createElement('a');
-        link.download = `${target}_lightcurve_${mission}.png`;
-        link.href = imgURI;
-        link.click();
-      };
-      
-      img.src = url;
-    }
-  };
-
-  const handleExportSVG = () => {
-    if (chartRef.current) {
-      const svg = chartRef.current.querySelector('svg');
-      const data = new XMLSerializer().serializeToString(svg);
-      const blob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.download = `${target}_lightcurve_${mission}.svg`;
-      link.href = url;
-      link.click();
-      
-      URL.revokeObjectURL(url);
-    }
-  };
-
   const handleExportData = () => {
     const csvContent = [
       'time,flux,flux_err',
@@ -178,34 +132,11 @@ const LightCurveChart = ({
     URL.revokeObjectURL(url);
   };
 
-  const toggleFullscreen = () => {
-    if (!isFullscreen) {
-      if (containerRef.current?.requestFullscreen) {
-        containerRef.current.requestFullscreen();
-      }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
-    setIsFullscreen(!isFullscreen);
-  };
-
   const resetView = () => {
     setZoomLevel(1);
     setIsNormalized(false);
     setIsDetrended(false);
     setProcessedData(originalData);
-  };
-
-  const formatTooltipValue = (value, name) => {
-    if (name === 'flux') {
-      return [value?.toFixed(6), 'Relative Flux'];
-    }
-    if (name === 'time') {
-      return [value?.toFixed(4), 'Time (days)'];
-    }
-    return [value, name];
   };
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -296,32 +227,12 @@ const LightCurveChart = ({
             <RotateCcw size={18} />
           </button>
           
-          <button
-            onClick={toggleFullscreen}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
-            title="Toggle fullscreen"
-          >
-            <Maximize2 size={18} />
-          </button>
-          
           {/* Export dropdown */}
           <div className="relative group">
             <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded">
               <Download size={18} />
             </button>
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-              <button
-                onClick={handleExportPNG}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                Export as PNG
-              </button>
-              <button
-                onClick={handleExportSVG}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                Export as SVG
-              </button>
               <button
                 onClick={handleExportData}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

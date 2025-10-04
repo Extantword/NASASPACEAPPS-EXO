@@ -3,31 +3,31 @@ import { Github, ExternalLink } from 'lucide-react'
 
 const Footer = () => {
   return (
-    <footer className="bg-black bg-opacity-50 backdrop-blur-md border-t border-white border-opacity-20 mt-auto">
+    <footer className="bg-gray-900 border-t border-gray-800">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Project Info */}
           <div>
             <h3 className="text-lg font-semibold text-white mb-4">Exoplanet Explorer</h3>
-            <p className="text-gray-300 text-sm">
-              An interactive tool for exploring and analyzing exoplanet data from NASA missions. 
-              Built for the NASA Space Apps Challenge 2024.
+            <p className="text-gray-400 text-sm">
+              NASA Space Apps Challenge 2024 project for exploring and analyzing exoplanets 
+              discovered by Kepler, TESS, and K2 missions.
             </p>
           </div>
 
-          {/* Data Sources */}
+          {/* Links */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Data Sources</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="text-lg font-semibold text-white mb-4">Resources</h3>
+            <ul className="space-y-2">
               <li>
                 <a 
                   href="https://exoplanetarchive.ipac.caltech.edu/" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-300 hover:text-blue-400 flex items-center"
+                  className="text-gray-400 hover:text-white text-sm flex items-center space-x-1"
                 >
-                  NASA Exoplanet Archive
-                  <ExternalLink className="h-3 w-3 ml-1" />
+                  <ExternalLink className="h-3 w-3" />
+                  <span>NASA Exoplanet Archive</span>
                 </a>
               </li>
               <li>
@@ -35,10 +35,10 @@ const Footer = () => {
                   href="https://mast.stsci.edu/" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-300 hover:text-blue-400 flex items-center"
+                  className="text-gray-400 hover:text-white text-sm flex items-center space-x-1"
                 >
-                  MAST Archive
-                  <ExternalLink className="h-3 w-3 ml-1" />
+                  <ExternalLink className="h-3 w-3" />
+                  <span>MAST Archive</span>
                 </a>
               </li>
               <li>
@@ -46,36 +46,38 @@ const Footer = () => {
                   href="https://docs.lightkurve.org/" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-300 hover:text-blue-400 flex items-center"
+                  className="text-gray-400 hover:text-white text-sm flex items-center space-x-1"
                 >
-                  Lightkurve
-                  <ExternalLink className="h-3 w-3 ml-1" />
+                  <ExternalLink className="h-3 w-3" />
+                  <span>Lightkurve Documentation</span>
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Team & Links */}
+          {/* Team */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Team & Code</h3>
-            <div className="space-y-2 text-sm">
-              <p className="text-gray-300">
-                Built with ❤️ for NASA Space Apps Challenge
-              </p>
+            <h3 className="text-lg font-semibold text-white mb-4">Team</h3>
+            <div className="flex items-center space-x-4">
               <a 
-                href="https://github.com/Extantword/NASASPACEAPPS-EXO" 
+                href="https://github.com/your-team/exoplanet-explorer" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-blue-400 flex items-center"
+                className="text-gray-400 hover:text-white"
               >
-                <Github className="h-4 w-4 mr-2" />
-                View on GitHub
+                <Github className="h-6 w-6" />
               </a>
-              <p className="text-gray-400 text-xs mt-4">
-                &copy; 2024 Exoplanet Explorer Team. Open source project.
-              </p>
             </div>
+            <p className="text-gray-500 text-xs mt-4">
+              Built with ❤️ for NASA Space Apps Challenge 2024
+            </p>
           </div>
+        </div>
+        
+        <div className="border-t border-gray-800 mt-8 pt-4">
+          <p className="text-center text-gray-500 text-xs">
+            Data courtesy of NASA/IPAC.
+          </p>
         </div>
       </div>
     </footer>
