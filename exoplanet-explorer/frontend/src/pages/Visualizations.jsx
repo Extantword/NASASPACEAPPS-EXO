@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react'
-import { BarChart, LineChart, Activity, Download } from 'lucide-react'
-import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter } from 'recharts'
+import { BarChart, Activity, Download, Search, TrendingUp, Globe } from 'lucide-react'
 import Loading from '../components/common/Loading'
+import { LightCurveChart, ExoplanetVisualization } from '../components/visualizations'
 import api from '../api/endpoints'
 
 const Visualizations = () => {
   const [lightCurveData, setLightCurveData] = useState(null)
-  const [selectedStar, setSelectedStar] = useState('')
+  const [planetsData, setPlanetsData] = useState([])
+  const [selectedTarget, setSelectedTarget] = useState('')
+  const [selectedMission, setSelectedMission] = useState('TESS')
   const [loading, setLoading] = useState(false)
+  const [planetsLoading, setPlanetsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [planetStats, setPlanetStats] = useState(null)
+  const [activeTab, setActiveTab] = useState('lightcurves')
 
   useEffect(() => {
     loadPlanetStats()
+    loadPlanetsData()
   }, [])
 
   const loadPlanetStats = async () => {
@@ -24,14 +29,26 @@ const Visualizations = () => {
     }
   }
 
-  const loadLightCurve = async (starId) => {
-    if (!starId.trim()) return
+  const loadPlanetsData = async () => {
+    setPlanetsLoading(true)
+    try {
+      const response = await api.planets.search('', { limit: 2000 })
+      setPlanetsData(response.data.planets)
+    } catch (err) {
+      console.error('Error loading planets data:', err)
+    } finally {
+      setPlanetsLoading(false)
+    }
+  }
+
+  const loadLightCurve = async (target) => {
+    if (!target.trim()) return
 
     setLoading(true)
     setError(null)
 
     try {
-      const response = await api.lightCurves.get(starId, 'TESS')
+      const response = await api.lightCurves.get(target, selectedMission)
       const data = response.data
 
       // Convert to chart-friendly format
@@ -55,19 +72,12 @@ const Visualizations = () => {
 
   const handleSearch = (e) => {
     e.preventDefault()
-    loadLightCurve(selectedStar)
+    loadLightCurve(selectedTarget)
   }
 
-  // Mock data for planet correlations
-  const planetCorrelationData = [
-    { period: 1.2, radius: 0.8, name: 'TOI-100b' },
-    { period: 3.5, radius: 1.2, name: 'TOI-101b' },
-    { period: 8.1, radius: 2.1, name: 'TOI-102b' },
-    { period: 15.7, radius: 3.2, name: 'TOI-103b' },
-    { period: 25.3, radius: 1.8, name: 'TOI-104b' },
-    { period: 42.1, radius: 4.1, name: 'TOI-105b' },
-    { period: 67.2, radius: 2.8, name: 'TOI-106b' },
-    { period: 95.5, radius: 5.2, name: 'TOI-107b' },
+  const popularTargets = [
+    'TOI-715 b', 'WASP-96 b', 'HD 209458 b', 'TRAPPIST-1', 'Kepler-442 b',
+    'K2-18 b', '55 Cancri e', 'Kepler-186 f', 'Kepler-452 b', 'KIC 8462852'
   ]
 
   return (
@@ -76,243 +86,219 @@ const Visualizations = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-4">
-            Data Visualizations
+            Interactive Data Visualizations
           </h1>
           <p className="text-gray-300">
-            Interactive charts and analysis tools for exoplanet data
+            Advanced charts and analysis tools powered by real NASA data
           </p>
         </div>
 
-        {/* Light Curve Section */}
-        <div className="card mb-8">
-          <div className="flex items-center mb-6">
-            <Activity className="h-6 w-6 text-blue-400 mr-2" />
-            <h2 className="text-xl font-semibold text-white">Light Curve Analysis</h2>
-          </div>
-
-          {/* Search Form */}
-          <form onSubmit={handleSearch} className="mb-6">
-            <div className="flex gap-4">
-              <input
-                type="text"
-                value={selectedStar}
-                onChange={(e) => setSelectedStar(e.target.value)}
-                placeholder="Enter star ID (e.g., TIC 123456789, TOI-100)"
-                className="flex-1 px-4 py-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+        {/* Navigation Tabs */}
+        <div className="bg-white rounded-lg shadow-lg mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8 px-6">
               <button
-                type="submit"
-                className="btn-primary flex items-center"
-                disabled={loading}
+                onClick={() => setActiveTab('lightcurves')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'lightcurves'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
               >
-                <Activity className="h-4 w-4 mr-2" />
-                Load Light Curve
+                <Activity className="inline-block w-4 h-4 mr-2" />
+                Light Curves
               </button>
-            </div>
-          </form>
-
-          {/* Loading State */}
-          {loading && <Loading message="Loading light curve data..." />}
-
-          {/* Error State */}
-          {error && (
-            <div className="bg-red-900 bg-opacity-50 border border-red-500 rounded-lg p-4 text-red-200 text-center">
-              {error}
-            </div>
-          )}
-
-          {/* Light Curve Chart */}
-          {lightCurveData && !loading && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-white">
-                    {lightCurveData.star_name}
-                  </h3>
-                  <p className="text-gray-300 text-sm">
-                    Mission: {lightCurveData.mission} | Data Points: {lightCurveData.chartData.length}
-                  </p>
-                </div>
-                <button className="btn-secondary flex items-center text-sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download CSV
-                </button>
-              </div>
-
-              <div className="bg-white bg-opacity-5 rounded-lg p-4">
-                <ResponsiveContainer width="100%" height={400}>
-                  <RechartsLineChart data={lightCurveData.chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                    <XAxis 
-                      dataKey="time" 
-                      stroke="#9CA3AF"
-                      fontSize={12}
-                    />
-                    <YAxis 
-                      stroke="#9CA3AF"
-                      fontSize={12}
-                    />
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: 'rgba(0,0,0,0.8)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        borderRadius: '8px',
-                        color: 'white'
-                      }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="flux" 
-                      stroke="#3B82F6" 
-                      strokeWidth={1}
-                      dot={false}
-                    />
-                  </RechartsLineChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Metadata */}
-              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-white">
-                    {lightCurveData.metadata.duration_days?.toFixed(1) || 'N/A'}
-                  </div>
-                  <div className="text-sm text-gray-400">Duration (days)</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-white">
-                    {lightCurveData.metadata.mean_flux?.toFixed(4) || 'N/A'}
-                  </div>
-                  <div className="text-sm text-gray-400">Mean Flux</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-white">
-                    {lightCurveData.metadata.std_flux?.toFixed(6) || 'N/A'}
-                  </div>
-                  <div className="text-sm text-gray-400">Std Dev</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-white">
-                    {lightCurveData.data.cadence || 'N/A'}
-                  </div>
-                  <div className="text-sm text-gray-400">Cadence</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!lightCurveData && !loading && !error && (
-            <div className="text-center py-12">
-              <Activity className="h-16 w-16 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400">Enter a star identifier to load light curve data</p>
-            </div>
-          )}
+              <button
+                onClick={() => setActiveTab('correlations')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'correlations'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <TrendingUp className="inline-block w-4 h-4 mr-2" />
+                Planet Properties
+              </button>
+              <button
+                onClick={() => setActiveTab('statistics')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'statistics'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <BarChart className="inline-block w-4 h-4 mr-2" />
+                Mission Statistics
+              </button>
+            </nav>
+          </div>
         </div>
 
-        {/* Planet Correlations */}
-        <div className="card mb-8">
-          <div className="flex items-center mb-6">
-            <BarChart className="h-6 w-6 text-blue-400 mr-2" />
-            <h2 className="text-xl font-semibold text-white">Planet Correlations</h2>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Period vs Radius Scatter Plot */}
-            <div>
-              <h3 className="text-lg font-medium text-white mb-4">
-                Orbital Period vs Planet Radius
-              </h3>
-              <div className="bg-white bg-opacity-5 rounded-lg p-4">
-                <ResponsiveContainer width="100%" height={300}>
-                  <ScatterChart data={planetCorrelationData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                    <XAxis 
-                      dataKey="period" 
-                      name="Period (days)"
-                      stroke="#9CA3AF"
-                      fontSize={12}
+        {/* Tab Content */}
+        {activeTab === 'lightcurves' && (
+          <div className="space-y-8">
+            {/* Light Curve Search */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Light Curve Explorer
+              </h2>
+              
+              <form onSubmit={handleSearch} className="mb-6">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Target Name
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedTarget}
+                      onChange={(e) => setSelectedTarget(e.target.value)}
+                      placeholder="e.g., TOI-715 b, WASP-96 b, Kepler-442 b"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-                    <YAxis 
-                      dataKey="radius" 
-                      name="Radius (Earth radii)"
-                      stroke="#9CA3AF"
-                      fontSize={12}
-                    />
-                    <Tooltip 
-                      cursor={{ strokeDasharray: '3 3' }}
-                      contentStyle={{
-                        backgroundColor: 'rgba(0,0,0,0.8)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        borderRadius: '8px',
-                        color: 'white'
-                      }}
-                    />
-                    <Scatter 
-                      dataKey="radius" 
-                      fill="#3B82F6"
-                    />
-                  </ScatterChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Discovery Statistics */}
-            <div>
-              <h3 className="text-lg font-medium text-white mb-4">
-                Discovery Statistics
-              </h3>
-              {planetStats ? (
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-300 mb-2">By Mission</h4>
-                    <div className="space-y-2">
-                      {Object.entries(planetStats.by_mission || {}).map(([mission, count]) => (
-                        <div key={mission} className="flex justify-between items-center">
-                          <span className="text-gray-400">{mission}</span>
-                          <span className="text-white font-semibold">{count}</span>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                   
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-300 mb-2">Discovery Methods</h4>
-                    <div className="space-y-2">
-                      {Object.entries(planetStats.by_method || {}).slice(0, 5).map(([method, count]) => (
-                        <div key={method} className="flex justify-between items-center">
-                          <span className="text-gray-400 text-sm truncate">{method}</span>
-                          <span className="text-white font-semibold">{count}</span>
-                        </div>
-                      ))}
+                  <div className="sm:w-48">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mission
+                    </label>
+                    <select
+                      value={selectedMission}
+                      onChange={(e) => setSelectedMission(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="TESS">TESS</option>
+                      <option value="Kepler">Kepler</option>
+                      <option value="K2">K2</option>
+                    </select>
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    disabled={loading || !selectedTarget.trim()}
+                    className="sm:mt-7 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    {loading ? 'Loading...' : 'Search'}
+                  </button>
+                </div>
+              </form>
+
+              {/* Popular targets */}
+              <div className="mb-6">
+                <p className="text-sm text-gray-600 mb-2">Popular targets:</p>
+                <div className="flex flex-wrap gap-2">
+                  {popularTargets.map(target => (
+                    <button
+                      key={target}
+                      onClick={() => {
+                        setSelectedTarget(target)
+                        loadLightCurve(target)
+                      }}
+                      className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200"
+                    >
+                      {target}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-600">{error}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Light Curve Chart */}
+            {lightCurveData && (
+              <LightCurveChart
+                data={lightCurveData.chartData}
+                title={`Light Curve: ${lightCurveData.target_name || selectedTarget}`}
+                target={lightCurveData.target_name || selectedTarget}
+                mission={selectedMission}
+                className="mb-8"
+              />
+            )}
+
+            {loading && (
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <Loading />
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'correlations' && (
+          <div className="space-y-8">
+            {planetsLoading ? (
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <Loading />
+              </div>
+            ) : (
+              <ExoplanetVisualization
+                planets={planetsData}
+                title="Exoplanet Properties Explorer"
+                className="mb-8"
+              />
+            )}
+          </div>
+        )}
+
+        {activeTab === 'statistics' && (
+          <div className="space-y-8">
+            {/* Mission Statistics */}
+            {planetStats && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <div className="flex items-center">
+                    <Globe className="h-8 w-8 text-blue-500 mr-3" />
+                    <div>
+                      <p className="text-gray-600 text-sm">Confirmed Exoplanets</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {planetStats.total_confirmed?.toLocaleString() || 'N/A'}
+                      </p>
                     </div>
                   </div>
                 </div>
-              ) : (
-                <Loading message="Loading statistics..." />
-              )}
+                
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <div className="flex items-center">
+                    <Activity className="h-8 w-8 text-green-500 mr-3" />
+                    <div>
+                      <p className="text-gray-600 text-sm">TESS Discoveries</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {planetStats.by_mission?.TESS?.toLocaleString() || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <div className="flex items-center">
+                    <TrendingUp className="h-8 w-8 text-purple-500 mr-3" />
+                    <div>
+                      <p className="text-gray-600 text-sm">Kepler Legacy</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {planetStats.by_mission?.Kepler?.toLocaleString() || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Discovery Timeline */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Exoplanet Discovery Timeline
+              </h3>
+              <div className="text-center py-8 text-gray-500">
+                Discovery timeline visualization coming soon...
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Quick Analysis Tools */}
-        <div className="card">
-          <h2 className="text-xl font-semibold text-white mb-6">Quick Analysis Tools</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="btn-secondary flex items-center justify-center p-4">
-              <LineChart className="h-5 w-5 mr-2" />
-              Period Analysis
-            </button>
-            <button className="btn-secondary flex items-center justify-center p-4">
-              <BarChart className="h-5 w-5 mr-2" />
-              Size Distribution
-            </button>
-            <button className="btn-secondary flex items-center justify-center p-4">
-              <Activity className="h-5 w-5 mr-2" />
-              Transit Detection
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )

@@ -5,9 +5,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
+import asyncio
 
 from app.config import settings
 from app.api.routes import missions, stars, planets, lightcurves, ml
+from app.etl.startup import initialize_startup_data
 
 # Configure logging
 logging.basicConfig(level=getattr(logging, settings.log_level))
@@ -39,6 +41,28 @@ app.include_router(lightcurves.router, prefix="/api/v1/lightcurves", tags=["ligh
 app.include_router(ml.router, prefix="/api/v1/ml", tags=["machine-learning"])
 
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialize data when the server starts"""
+    logger.info("🚀 Starting Exoplanet Explorer API...")
+    
+    # Start data initialization in background
+    asyncio.create_task(initialize_startup_data_background())
+
+
+async def initialize_startup_data_background():
+    """Initialize data in background to avoid blocking startup"""
+    try:
+        logger.info("📡 Initializing NASA datasets...")
+        success = await initialize_startup_data()
+        if success:
+            logger.info("✅ NASA datasets initialized successfully")
+        else:
+            logger.warning("⚠️ Some datasets failed to initialize (using fallback data)")
+    except Exception as e:
+        logger.error(f"❌ Data initialization failed: {str(e)}")
+
+
 @app.get("/")
 async def root():
     """Root endpoint"""
@@ -53,6 +77,13 @@ async def root():
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "service": "exoplanet-explorer-api"}
+
+
+@app.get("/api/v1/data/status")
+async def data_status():
+    """Get data initialization status"""
+    from app.etl.startup import get_data_status
+    return await get_data_status()
 
 
 @app.exception_handler(HTTPException)
