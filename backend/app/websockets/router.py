@@ -84,15 +84,60 @@ async def websocket_chat_endpoint(websocket: WebSocket, client_id: str):
                 data = await websocket.receive_text()
                 logger.info(f"Mensaje recibido de {client_id}: {data}")
                 
-                # Parsear el mensaje JSON
+                # MODIFICACIÓN PARA DEBUGGING: Respuesta directa (eco) al cliente
+                # Enviar confirmación inmediata solo al cliente que envió el mensaje
+                await websocket.send_text("Servidor dice: Buenas noches, he recibido tu mensaje.")
+                
+                # ESTANDARIZACIÓN JSON: Decodificar mensaje entrante
                 try:
+                    # 1. Decodificar de string JSON a diccionario Python
                     message_data = json.loads(data)
+                    # 2. Extraer el contenido del mensaje
+                    message_content = message_data.get("message", "")
                 except json.JSONDecodeError:
                     # Si no es JSON válido, tratarlo como texto plano
+                    message_content = data
                     message_data = {"message": data, "type": "text"}
                 
-                # Procesar diferentes tipos de mensajes
-                await process_chat_message(websocket, client_id, message_data)
+                # 3. Construir nuevo diccionario con estructura clara y consistente
+                standardized_message = {
+                    "sender": client_id,
+                    "content": message_content,
+                    "type": "message",
+                    "timestamp": datetime.now().isoformat(),
+                    "message_id": f"{client_id}_{chat_users.get(websocket, {}).get('message_count', 0) + 1}_{int(datetime.now().timestamp())}",
+                    "clients_online": len(manager.active_connections.get("chat", []))
+                }
+                
+                # Validar que el mensaje no esté vacío
+                if not standardized_message["content"].strip():
+                    error_message = {
+                        "type": "error",
+                        "message": "No puedes enviar mensajes vacíos",
+                        "timestamp": datetime.now().isoformat(),
+                        "sender": "Sistema"
+                    }
+                    await manager.send_personal_message(error_message, websocket)
+                    continue
+                
+                # Filtrar palabras prohibidas y agregar contexto astronómico
+                standardized_message["content"] = filter_message(standardized_message["content"])
+                if any(keyword in standardized_message["content"].lower() for keyword in 
+                       ["exoplanet", "kepler", "tess", "planeta", "estrella", "nasa"]):
+                    standardized_message["category"] = "astronomy"
+                    standardized_message["content"] += " 🌟"
+                
+                # Actualizar contador de mensajes del usuario
+                user_info = chat_users.get(websocket, {})
+                user_info["message_count"] = user_info.get("message_count", 0) + 1
+                
+                logger.info(f"Broadcasting mensaje estandarizado de {client_id} a todos los usuarios de chat")
+                
+                # 4. Codificar a string JSON antes del broadcast
+                json_message = json.dumps(standardized_message)
+                
+                # Hacer broadcast del mensaje codificado
+                await manager.broadcast(json_message, "chat")
                 
             except WebSocketDisconnect:
                 logger.info(f"Cliente {client_id} se desconectó del chat")

@@ -344,12 +344,20 @@
 
                     this.websocket.onmessage = (event) => {
                         try {
+                            // ESTANDARIZACIÓN JSON: Decodificar mensaje entrante
                             const data = JSON.parse(event.data);
                             console.log('Mensaje recibido:', data);
-                            this.handleMessage(data);
+                            
+                            // Manejar formato estandarizado del servidor
+                            this.handleStandardizedMessage(data);
                         } catch (error) {
                             console.error('Error parseando mensaje:', error);
-                            this.addSystemMessage('❌ Error procesando mensaje del servidor');
+                            // Si no es JSON, tratarlo como texto plano (respuesta de eco)
+                            if (typeof event.data === 'string' && event.data.includes('Servidor dice:')) {
+                                this.addSystemMessage(`📡 ${event.data}`);
+                            } else {
+                                this.addSystemMessage('❌ Error procesando mensaje del servidor');
+                            }
                         }
                     };
 
@@ -415,15 +423,18 @@
                 if (message === '') return;
 
                 try {
+                    // FORMATO ESTANDARIZADO: Enviar mensaje con estructura consistente
                     const messageData = {
                         type: 'message',
-                        message: message,
+                        message: message,  // El servidor espera 'message' como clave
+                        sender: this.clientId,
                         timestamp: new Date().toISOString()
                     };
 
+                    // Enviar como JSON string
                     this.websocket.send(JSON.stringify(messageData));
                     this.messageInput.value = '';
-                    console.log('Mensaje enviado:', messageData);
+                    console.log('Mensaje enviado (formato estandarizado):', messageData);
 
                 } catch (error) {
                     console.error('Error enviando mensaje:', error);
@@ -455,6 +466,30 @@
                 // Actualizar contador de usuarios online
                 if (data.clients_online !== undefined) {
                     this.updateOnlineCount(data.clients_online);
+                }
+            }
+
+            handleStandardizedMessage(data) {
+                // FORMATO ESTANDARIZADO: Manejar mensajes con formato consistente
+                console.log('Procesando mensaje estandarizado:', data);
+                
+                // Verificar si es el formato nuevo estandarizado
+                if (data.sender && data.content !== undefined) {
+                    // Formato nuevo: {sender, content, type, timestamp, etc.}
+                    this.addUserMessage(
+                        data.sender, 
+                        data.content, 
+                        data.timestamp, 
+                        data.sender === this.clientId
+                    );
+                    
+                    // Actualizar contador de usuarios online
+                    if (data.clients_online !== undefined) {
+                        this.updateOnlineCount(data.clients_online);
+                    }
+                } else {
+                    // Formato legacy: usar handleMessage existente para compatibilidad
+                    this.handleMessage(data);
                 }
             }
 
