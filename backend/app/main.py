@@ -9,6 +9,7 @@ import asyncio
 
 from app.config import settings
 from app.api.routes import missions, stars, planets, lightcurves, ml, websockets
+from app.websockets import router as websocket_chat_router
 from app.etl.startup import initialize_startup_data
 
 # Configure logging
@@ -40,6 +41,9 @@ app.include_router(planets.router, prefix="/api/v1/planets", tags=["planets"])
 app.include_router(lightcurves.router, prefix="/api/v1/lightcurves", tags=["lightcurves"])
 app.include_router(ml.router, prefix="/api/v1/ml", tags=["machine-learning"])
 app.include_router(websockets.router, prefix="/api/v1/ws", tags=["websockets"])
+
+# Include WebSocket chat router
+app.include_router(websocket_chat_router.router, prefix="/api/v1", tags=["chat"])
 
 
 @app.on_event("startup")
