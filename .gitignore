@@ -69,3 +69,8 @@ yarn-error.log*
 # Build outputs
 dist/
 build/
+
+# IAC
+*.tfvars
+*.terraform*
+*.tfsate*
