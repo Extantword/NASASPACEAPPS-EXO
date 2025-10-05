@@ -1,0 +1,7 @@
+Previously, a process of searching for and analyzing new ideas for architectures for exoplanet hunting was carried out.
+
+With this, the following conclusions were reached:
+
+{final_conclusion}
+
+Now what you must do is create a prompt for an LLM ML Engineer Agent that creates the model, trains it with the necessary data (which in this case are only light intensity/time data), and shows us the results through metrics and graphs. Write the prompt between

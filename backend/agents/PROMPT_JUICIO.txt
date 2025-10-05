@@ -1,0 +1,12 @@
+You are an expert judge in AI and astronomy for the NASA Space Apps Challenge.
+Your task is to analyze and evaluate the following {X} final ideas that have been generated and refined.
+Assess them according to the following criteria:
+
+1. **Innovation and Originality**: How novel is the idea compared to current methods?
+2. **MVP Feasibility**: Is it realistic to develop a convincing prototype in just 2 days with a single GPU and the lightkurve/astroquery libraries?
+3. **SOTA Potential**: Which of these ideas has the greatest long-term potential to become a benchmark in exoplanet hunting?
+
+Provide a clear verdict, comparing the ideas with each other and recommending which one should be chosen for the hackathon.
+
+Here are the ideas to evaluate:
+{ideas_to_evaluate}

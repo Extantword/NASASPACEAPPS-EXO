@@ -66,5 +66,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # Build outputs
-
-build/
+# IAC
+*.tfvars
+*.terraform*
+*.tfsate*
