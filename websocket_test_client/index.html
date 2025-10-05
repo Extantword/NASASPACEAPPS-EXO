@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Exoplanet Explorer - Chat en Tiempo Real</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%);
+            color: white;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+            color: #ffd700;
+        }
+
+        .header p {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .status.connecting {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .status.connected {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+        }
+
+        .status.disconnected {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+
+        .messages-container {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s ease-in;
+            word-wrap: break-word;
+        }
+
+        .message.system {
+            background: rgba(108, 117, 125, 0.3);
+            border-left: 4px solid #6c757d;
+            font-style: italic;
+        }
+
+        .message.user_joined {
+            background: rgba(40, 167, 69, 0.2);
+            border-left: 4px solid #28a745;
+        }
+
+        .message.user_left {
+            background: rgba(220, 53, 69, 0.2);
+            border-left: 4px solid #dc3545;
+        }
+
+        .message.regular {
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #007bff;
+        }
+
+        .message.own {
+            background: rgba(255, 215, 0, 0.2);
+            border-left: 4px solid #ffd700;
+            margin-left: 20px;
+        }
+
+        .message-header {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .message-text {
+            font-size: 1em;
+            line-height: 1.4;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1em;
+            outline: none;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .message-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #ffd700;
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3);
+        }
+
+        .message-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .send-button {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #1e3c72;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .online-count {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .typing-indicator {
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+            font-size: 0.9em;
+            padding: 10px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 95%;
+                height: 90vh;
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .online-count {
+                position: static;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="online-count" id="onlineCount">🌟 0 exploradores online</div>
+        
+        <div class="header">
+            <h1>🚀 Exoplanet Explorer Chat</h1>
+            <p>Conecta con otros exploradores del universo</p>
+        </div>
+
+        <div class="status connecting" id="connectionStatus">
+            🔄 Conectando al servidor...
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <div class="message system">
+                <div class="message-header">Sistema • Bienvenida</div>
+                <div class="message-text">¡Bienvenido al chat de Exoplanet Explorer! Introduce tu nombre y comienza a explorar el universo con otros usuarios.</div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            Alguien está escribiendo...
+        </div>
+
+        <div class="input-container">
+            <input 
+                type="text" 
+                id="messageInput" 
+                class="message-input" 
+                placeholder="Escribe tu mensaje sobre exoplanetas..." 
+                maxlength="500"
+                disabled
+            />
+            <button id="sendButton" class="send-button" disabled>
+                🚀 Enviar
+            </button>
+        </div>
+    </div>
+
+    <script>
+        class ExoplanetChat {
+            constructor() {
+                this.websocket = null;
+                this.clientId = null;
+                this.isConnected = false;
+                this.messagesContainer = document.getElementById('messagesContainer');
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.connectionStatus = document.getElementById('connectionStatus');
+                this.onlineCount = document.getElementById('onlineCount');
+                
+                this.initializeChat();
+                this.setupEventListeners();
+            }
+
+            initializeChat() {
+                // Solicitar nombre del usuario
+                this.clientId = this.getClientId();
+                if (!this.clientId) {
+                    this.addSystemMessage("❌ Error: No se pudo obtener un nombre válido. Recarga la página.");
+                    return;
+                }
+
+                this.addSystemMessage(`🎯 Iniciando conexión como "${this.clientId}"...`);
+                this.connect();
+            }
+
+            getClientId() {
+                let clientId = localStorage.getItem('exoplanet_chat_client_id');
+                
+                if (!clientId) {
+                    clientId = prompt('🌟 ¡Bienvenido al chat de Exoplanet Explorer!\n\n¿Cuál es tu nombre de explorador?');
+                    
+                    if (!clientId || clientId.trim() === '') {
+                        alert('❌ Necesitas introducir un nombre para participar en el chat.');
+                        return null;
+                    }
+                    
+                    // Limpiar y validar el nombre
+                    clientId = clientId.trim().substring(0, 20);
+                    clientId = clientId.replace(/[^a-zA-Z0-9_\-\s]/g, '');
+                    
+                    if (clientId === '') {
+                        alert('❌ El nombre debe contener al menos un carácter válido.');
+                        return null;
+                    }
+                    
+                    localStorage.setItem('exoplanet_chat_client_id', clientId);
+                }
+                
+                return clientId;
+            }
+
+            connect() {
+                try {
+                    const wsUrl = `ws://localhost:8000/api/v1/ws/chat/${encodeURIComponent(this.clientId)}`;
+                    console.log('Conectando a:', wsUrl);
+                    
+                    this.websocket = new WebSocket(wsUrl);
+                    
+                    this.websocket.onopen = (event) => {
+                        console.log('WebSocket conectado:', event);
+                        this.isConnected = true;
+                        this.updateConnectionStatus('connected', '🟢 Conectado al chat');
+                        this.messageInput.disabled = false;
+                        this.sendButton.disabled = false;
+                        this.messageInput.focus();
+                    };
+
+                    this.websocket.onmessage = (event) => {
+                        try {
+                            // ESTANDARIZACIÓN JSON: Decodificar mensaje entrante
+                            const data = JSON.parse(event.data);
+                            console.log('Mensaje recibido:', data);
+                            
+                            // Manejar formato estandarizado del servidor
+                            this.handleStandardizedMessage(data);
+                        } catch (error) {
+                            console.error('Error parseando mensaje:', error);
+                            // Si no es JSON, tratarlo como texto plano (respuesta de eco)
+                            if (typeof event.data === 'string' && event.data.includes('Servidor dice:')) {
+                                this.addSystemMessage(`📡 ${event.data}`);
+                            } else {
+                                this.addSystemMessage('❌ Error procesando mensaje del servidor');
+                            }
+                        }
+                    };
+
+                    this.websocket.onclose = (event) => {
+                        console.log('WebSocket cerrado:', event);
+                        this.isConnected = false;
+                        this.updateConnectionStatus('disconnected', '🔴 Desconectado del chat');
+                        this.messageInput.disabled = true;
+                        this.sendButton.disabled = true;
+                        
+                        // Intentar reconectar después de 3 segundos
+                        if (event.code !== 1000) {
+                            setTimeout(() => {
+                                this.addSystemMessage('🔄 Intentando reconectar...');
+                                this.connect();
+                            }, 3000);
+                        }
+                    };
+
+                    this.websocket.onerror = (error) => {
+                        console.error('Error de WebSocket:', error);
+                        this.updateConnectionStatus('disconnected', '❌ Error de conexión');
+                        this.addSystemMessage('❌ Error de conexión. Verifica que el servidor esté ejecutándose en localhost:8000');
+                    };
+
+                } catch (error) {
+                    console.error('Error creando WebSocket:', error);
+                    this.updateConnectionStatus('disconnected', '❌ Error creando conexión');
+                    this.addSystemMessage('❌ Error conectando al servidor');
+                }
+            }
+
+            setupEventListeners() {
+                // Enviar mensaje al presionar Enter
+                this.messageInput.addEventListener('keypress', (event) => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+
+                // Enviar mensaje al hacer click en el botón
+                this.sendButton.addEventListener('click', () => {
+                    this.sendMessage();
+                });
+
+                // Cambiar nombre de usuario
+                document.addEventListener('keydown', (event) => {
+                    if (event.ctrlKey && event.key === 'u') {
+                        event.preventDefault();
+                        this.changeUsername();
+                    }
+                });
+            }
+
+            sendMessage() {
+                if (!this.isConnected || !this.websocket) {
+                    this.addSystemMessage('❌ No hay conexión al servidor');
+                    return;
+                }
+
+                const message = this.messageInput.value.trim();
+                if (message === '') return;
+
+                try {
+                    // FORMATO ESTANDARIZADO: Enviar mensaje con estructura consistente
+                    const messageData = {
+                        type: 'message',
+                        message: message,  // El servidor espera 'message' como clave
+                        sender: this.clientId,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    // Enviar como JSON string
+                    this.websocket.send(JSON.stringify(messageData));
+                    this.messageInput.value = '';
+                    console.log('Mensaje enviado (formato estandarizado):', messageData);
+
+                } catch (error) {
+                    console.error('Error enviando mensaje:', error);
+                    this.addSystemMessage('❌ Error enviando mensaje');
+                }
+            }
+
+            handleMessage(data) {
+                switch (data.type) {
+                    case 'system':
+                        this.addSystemMessage(data.message, data.timestamp);
+                        break;
+                    case 'user_joined':
+                        this.addJoinMessage(data.message, data.timestamp);
+                        break;
+                    case 'user_left':
+                        this.addLeaveMessage(data.message, data.timestamp);
+                        break;
+                    case 'message':
+                        this.addUserMessage(data.sender, data.message, data.timestamp, data.sender === this.clientId);
+                        break;
+                    case 'error':
+                        this.addSystemMessage(`❌ ${data.message}`, data.timestamp);
+                        break;
+                    default:
+                        console.log('Tipo de mensaje no reconocido:', data);
+                }
+
+                // Actualizar contador de usuarios online
+                if (data.clients_online !== undefined) {
+                    this.updateOnlineCount(data.clients_online);
+                }
+            }
+
+            handleStandardizedMessage(data) {
+                // FORMATO ESTANDARIZADO: Manejar mensajes con formato consistente
+                console.log('Procesando mensaje estandarizado:', data);
+                
+                // Verificar si es el formato nuevo estandarizado
+                if (data.sender && data.content !== undefined) {
+                    // Formato nuevo: {sender, content, type, timestamp, etc.}
+                    this.addUserMessage(
+                        data.sender, 
+                        data.content, 
+                        data.timestamp, 
+                        data.sender === this.clientId
+                    );
+                    
+                    // Actualizar contador de usuarios online
+                    if (data.clients_online !== undefined) {
+                        this.updateOnlineCount(data.clients_online);
+                    }
+                } else {
+                    // Formato legacy: usar handleMessage existente para compatibilidad
+                    this.handleMessage(data);
+                }
+            }
+
+            addSystemMessage(message, timestamp = null) {
+                this.addMessage('system', 'Sistema', message, timestamp);
+            }
+
+            addJoinMessage(message, timestamp = null) {
+                this.addMessage('user_joined', 'Sistema', message, timestamp);
+            }
+
+            addLeaveMessage(message, timestamp = null) {
+                this.addMessage('user_left', 'Sistema', message, timestamp);
+            }
+
+            addUserMessage(sender, message, timestamp = null, isOwn = false) {
+                const type = isOwn ? 'own' : 'regular';
+                this.addMessage(type, sender, message, timestamp);
+            }
+
+            addMessage(type, sender, message, timestamp = null) {
+                const messageElement = document.createElement('div');
+                messageElement.className = `message ${type}`;
+
+                const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+                
+                messageElement.innerHTML = `
+                    <div class="message-header">${sender} • ${timeStr}</div>
+                    <div class="message-text">${this.escapeHtml(message)}</div>
+                `;
+
+                this.messagesContainer.appendChild(messageElement);
+                this.scrollToBottom();
+            }
+
+            updateConnectionStatus(status, message) {
+                this.connectionStatus.className = `status ${status}`;
+                this.connectionStatus.textContent = message;
+            }
+
+            updateOnlineCount(count) {
+                const text = count === 1 ? 'explorador online' : 'exploradores online';
+                this.onlineCount.textContent = `🌟 ${count} ${text}`;
+            }
+
+            scrollToBottom() {
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            changeUsername() {
+                const newName = prompt('🔄 Introduce tu nuevo nombre de explorador:', this.clientId);
+                if (newName && newName.trim() !== '' && newName !== this.clientId) {
+                    localStorage.setItem('exoplanet_chat_client_id', newName.trim());
+                    location.reload();
+                }
+            }
+
+            disconnect() {
+                if (this.websocket) {
+                    this.websocket.close(1000, 'User disconnected');
+                }
+            }
+        }
+
+        // Inicializar el chat cuando la página se carga
+        document.addEventListener('DOMContentLoaded', () => {
+            window.exoplanetChat = new ExoplanetChat();
+        });
+
+        // Limpiar conexión cuando se cierra la página
+        window.addEventListener('beforeunload', () => {
+            if (window.exoplanetChat) {
+                window.exoplanetChat.disconnect();
+            }
+        });
+
+        // Función global para cambiar nombre (Ctrl+U)
+        function changeUsername() {
+            if (window.exoplanetChat) {
+                window.exoplanetChat.changeUsername();
+            }
+        }
+
+        // Agregar algunas funciones de utilidad globales
+        console.log('🚀 Exoplanet Explorer Chat cargado!');
+        console.log('💡 Presiona Ctrl+U para cambiar tu nombre de usuario');
+    </script>
+</body>
+</html>

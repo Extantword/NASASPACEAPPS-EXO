@@ -9,6 +9,7 @@ import asyncio
 
 from app.config import settings
 from app.api.routes import missions, stars, planets, lightcurves, ml, websockets
+from app.websockets import router as websocket_chat_router
 from app.etl.startup import initialize_startup_data
 
 # Configure logging
@@ -41,27 +42,34 @@ app.include_router(lightcurves.router, prefix="/api/v1/lightcurves", tags=["ligh
 app.include_router(ml.router, prefix="/api/v1/ml", tags=["machine-learning"])
 app.include_router(websockets.router, prefix="/api/v1/ws", tags=["websockets"])
 
+# Include WebSocket chat router
+app.include_router(websocket_chat_router.router, prefix="/api/v1", tags=["chat"])
 
+
+# MODIFICACIÓN PARA DEBUGGING: Carga inicial de datos DESHABILITADA
+# Esto permite que el servidor inicie instantáneamente sin procesos pesados
 @app.on_event("startup")
 async def startup_event():
-    """Initialize data when the server starts"""
-    logger.info("🚀 Starting Exoplanet Explorer API...")
+    """Initialize server without heavy data loading (DEBUGGING MODE)"""
+    logger.info("🚀 Starting Exoplanet Explorer API (CHAT DEBUG MODE)...")
+    logger.info("📊 Data initialization DISABLED for chat testing")
     
-    # Start data initialization in background
-    asyncio.create_task(initialize_startup_data_background())
+    # COMENTADO: Start data initialization in background
+    # asyncio.create_task(initialize_startup_data_background())
 
 
-async def initialize_startup_data_background():
-    """Initialize data in background to avoid blocking startup"""
-    try:
-        logger.info("📡 Initializing NASA datasets...")
-        success = await initialize_startup_data()
-        if success:
-            logger.info("✅ NASA datasets initialized successfully")
-        else:
-            logger.warning("⚠️ Some datasets failed to initialize (using fallback data)")
-    except Exception as e:
-        logger.error(f"❌ Data initialization failed: {str(e)}")
+# COMENTADO: Función de carga de datos deshabilitada para debugging
+# async def initialize_startup_data_background():
+#     """Initialize data in background to avoid blocking startup"""
+#     try:
+#         logger.info("📡 Initializing NASA datasets...")
+#         success = await initialize_startup_data()
+#         if success:
+#             logger.info("✅ NASA datasets initialized successfully")
+#         else:
+#             logger.warning("⚠️ Some datasets failed to initialize (using fallback data)")
+#     except Exception as e:
+#         logger.error(f"❌ Data initialization failed: {str(e)}")
 
 
 @app.get("/")

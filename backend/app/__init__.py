@@ -1,1 +1,0 @@
-"""Exoplanet Explorer Backend Application"""
