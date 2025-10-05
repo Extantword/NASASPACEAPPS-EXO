@@ -86,15 +86,15 @@ resource "aws_instance" "public" {
 }
 
 # Private instance (no public IP)
-#resource "aws_instance" "private" {
-#  ami                         = data.aws_ami.amazon_linux_2.id
-#  instance_type               = var.back_instance_type
-#  subnet_id                   = aws_subnet.private.id
-#  associate_public_ip_address = false
-#  vpc_security_group_ids      = [aws_security_group.sg_private_http.id]
-#  user_data                   = file("${path.module}/dat/back-user-data.sh")
-#  tags = {
-#    Name  = "${var.project_name}-instance-private"
-#    Owner = var.owner
-#  }
-#}
+resource "aws_instance" "private" {
+  ami                         = data.aws_ami.amazon_linux_2.id
+  instance_type               = var.front_instance_type
+  subnet_id                   = aws_subnet.private.id
+  associate_public_ip_address = false
+  vpc_security_group_ids      = [aws_security_group.sg_private_http.id]
+  user_data                   = file("${path.module}/dat/front-user-data.sh") # cambiar despues de lo del free tier
+  tags = {
+    Name  = "${var.project_name}-instance-private"
+    Owner = var.owner
+  }
+}
