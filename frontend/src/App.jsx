@@ -76,7 +76,7 @@ function Navigation() {
     <nav>
       <div className="nav-container">
         <div className="logo">
-          <div className="logo-icon"></div>
+          <img src="/logo.png" alt="ExoFeel Logo" className="logo-icon" />
           ExoFeel
         </div>
         <ul className="nav-links">
@@ -84,7 +84,7 @@ function Navigation() {
           <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/explorer'); }}>Explorador</a></li>
           <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/music'); }}>Música</a></li>
           <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/art'); }}>Arte</a></li>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/learn'); }}>Aprender</a></li>
+          <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/learn'); }}>Foro</a></li>
           <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/ai'); }}>IA</a></li>
         </ul>
       </div>

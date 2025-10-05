@@ -346,7 +346,7 @@ function ExplorerPage({ accessibleMode, speak }) {
     if (!canvas) return;
     
     const link = document.createElement('a');
-    link.download = `astrofeel-${selectedPlanet.name}-${Date.now()}.png`;
+    link.download = `exofeel-${selectedPlanet.name}-${Date.now()}.png`;
     link.href = canvas.toDataURL();
     link.click();
     

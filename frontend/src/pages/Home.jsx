@@ -10,7 +10,7 @@ const Home = () => {
   return (
     <>
       <header>
-        <h1>🌌 AstroFeel</h1>
+        <h1>🌌 ExoFeel</h1>
         <p className="subtitle">Exploración Multisensorial del Universo con IA</p>
         <p style={{ marginTop: '15px', color: 'rgba(255,255,255,0.7)' }}>
           Experimenta el cosmos a través de todos tus sentidos
@@ -44,7 +44,7 @@ const Home = () => {
 
         <div className="module-card" onClick={() => navigate('/learn')}>
           <span className="module-icon">🧠</span>
-          <h3 className="module-title">Aprende con AstroFeel</h3>
+          <h3 className="module-title">Foro</h3>
           <p className="module-description">
             Lecciones interactivas sobre astronomía e IA. Completa misiones educativas y desbloquea nuevos descubrimientos.
           </p>
