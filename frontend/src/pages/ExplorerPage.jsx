@@ -360,15 +360,15 @@ function ExplorerPage({ accessibleMode, speak }) {
   };
 
   return (
-    <div>
-      <header>
-        <h1>🪐 Explorador de Exoplanetas</h1>
-        <p className="subtitle">Descubre mundos distantes a través de datos reales</p>
-        <Link to="/" style={{ color: '#00d4ff', textDecoration: 'none', marginTop: '10px', display: 'inline-block' }}>← Volver al inicio</Link>
-      </header>
+    <div className="page-container">
+      <div className="page-header">
+        <h1 className="page-title">🪐 Explorador de Exoplanetas</h1>
+        <p className="page-description">Descubre mundos distantes a través de datos reales</p>
+        <Link to="/" className="back-button">← Volver al inicio</Link>
+      </div>
 
       <div className="interactive-demo">
-        <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#00d4ff' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#06b6d4' }}>
           🌟 Demo Interactiva: Explorador de Exoplanetas
         </h2>
 
@@ -392,9 +392,9 @@ function ExplorerPage({ accessibleMode, speak }) {
 
         <div className="sound-wave" ref={soundWaveRef}></div>
 
-        <div className="controls">
-          <button className="btn" onClick={playSound}>🎵 Reproducir Sonido Cósmico</button>
-          <button className="btn" onClick={generateArt}>🎨 Generar Arte</button>
+        <div className="demo-controls">
+          <button className="control-button" onClick={playSound}>🎵 Reproducir Sonido Cósmico</button>
+          <button className="control-button" onClick={generateArt}>🎨 Generar Arte</button>
         </div>
 
         <div id="planetDescription" style={{ textAlign: 'center', marginTop: '20px', minHeight: '60px', fontSize: '1.1em', lineHeight: '1.6' }}>
@@ -423,8 +423,8 @@ function ExplorerPage({ accessibleMode, speak }) {
               style={{ borderRadius: '15px', boxShadow: `0 0 30px ${selectedPlanet.color}88` }}
             />
             <div style={{ marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
-              <button className="btn" onClick={regenerateArt} style={{ padding: '10px 20px' }}>🔄 Regenerar</button>
-              <button className="btn" onClick={downloadArt} style={{ padding: '10px 20px' }}>💾 Descargar</button>
+              <button className="control-button" onClick={regenerateArt} style={{ padding: '10px 20px' }}>🔄 Regenerar</button>
+              <button className="control-button" onClick={downloadArt} style={{ padding: '10px 20px' }}>💾 Descargar</button>
             </div>
             <p style={{ marginTop: '15px', textAlign: 'center', color: 'rgba(255,255,255,0.7)' }}>
               Basado en: Temp {selectedPlanet.temp}K | Tamaño {selectedPlanet.size}x | Nota {selectedPlanet.sound}

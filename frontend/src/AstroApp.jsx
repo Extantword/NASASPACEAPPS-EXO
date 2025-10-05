@@ -6,7 +6,41 @@ import ArtPage from './pages/ArtPage';
 import LearnPage from './pages/LearnPage';
 import AiBuilderPage from './pages/AiBuilderPage';
 import InclusivePage from './pages/InclusivePage';
-import './App.css';
+import './index.css'; // Corregido: usando index.css en lugar de App.css que no existe
+
+// Componente para exoplanetas flotantes de fondo
+function FloatingPlanets() {
+  useEffect(() => {
+    const floatingPlanetsContainer = document.getElementById('floatingPlanets');
+    if (floatingPlanetsContainer) {
+      floatingPlanetsContainer.innerHTML = '';
+      const planetColors = [
+        'linear-gradient(135deg, #7c3aed, #ec4899)',
+        'linear-gradient(135deg, #06b6d4, #7c3aed)',
+        'linear-gradient(135deg, #ec4899, #f59e0b)',
+        'linear-gradient(135deg, #10b981, #06b6d4)',
+        'linear-gradient(135deg, #f59e0b, #ec4899)'
+      ];
+
+      for (let i = 0; i < 15; i++) {
+        const planet = document.createElement('div');
+        planet.className = 'exoplanet';
+        const size = Math.random() * 200 + 50;
+        planet.style.width = size + 'px';
+        planet.style.height = size + 'px';
+        planet.style.left = Math.random() * 100 + '%';
+        planet.style.top = Math.random() * 100 + '%';
+        planet.style.background = planetColors[Math.floor(Math.random() * planetColors.length)];
+        planet.style.animationDelay = Math.random() * 20 + 's';
+        planet.style.animationDuration = (Math.random() * 15 + 15) + 's';
+        planet.style.opacity = Math.random() * 0.3 + 0.1;
+        floatingPlanetsContainer.appendChild(planet);
+      }
+    }
+  }, []);
+
+  return <div className="floating-planets" id="floatingPlanets"></div>;
+}
 
 // Componente para el campo de estrellas
 function StarField() {
@@ -146,6 +180,7 @@ function App() {
 
   return (
     <>
+      <FloatingPlanets />
       <StarField />
       <div className="container">
         <Routes>
