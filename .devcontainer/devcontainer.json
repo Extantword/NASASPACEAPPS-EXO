@@ -7,13 +7,31 @@
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 	"features": {
 		"ghcr.io/devcontainers/features/python:1": {},
+		"ghcr.io/devcontainers/features/terraform:1": {},
 		"ghcr.io/meaningful-ooo/devcontainer-features/fish:2": {}
 	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"eamodio.gitlens"
-			]
+				"eamodio.gitlens",
+				"esbenp.prettier-vscode",
+				"dbaeumer.vscode-eslint",
+				"ms-vscode.vscode-typescript-next"
+			],
+			"settings": {
+				// fuerza LF dentro del contenedor
+				"files.eol": "\n",
+				// evita que git convierta los EOLs automáticamente
+				"git.autofetch": true,
+				"git.autofl": false,
+				"git.autocrlf": false,
+				"git.enableSmartCommit": true,
+				// conveniencias de edición
+				"editor.formatOnSave": true,
+				"editor.defaultFormatter": "esbenp.prettier-vscode",
+				"editor.trimTrailingWhitespace": true,
+				"files.trimTrailingWhitespace": true
+			}
 		}
 	},
 
@@ -22,8 +40,9 @@
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// This can be used to network with other containers or with the host.
-	"forwardPorts": [5173, 5432]
-
+	"forwardPorts": [
+		5173
+	]
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "yarn install",
 
