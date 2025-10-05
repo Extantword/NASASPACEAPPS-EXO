@@ -74,3 +74,4 @@ build/
 *.tfvars
 *.terraform*
 *.tfsate*
+*.pem
