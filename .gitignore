@@ -13,7 +13,6 @@ env/
 
 # Frontend
 frontend/node_modules/
-frontend/dist/
 frontend/.env
 frontend/.env.local
 
@@ -67,9 +66,6 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # Build outputs
-dist/
-build/
-
 # IAC
 *.tfvars
 *.terraform*

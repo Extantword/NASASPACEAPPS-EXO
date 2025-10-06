@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react'
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import Home from './pages/Home'
-import ExplorerPage from './pages/ExplorerPage'
-import MusicPage from './pages/MusicPage'
-import ArtPage from './pages/ArtPage'
-import LearnPage from './pages/LearnPage'
-import AiBuilderPage from './pages/AiBuilderPage'
-import InclusivePage from './pages/InclusivePage'
-import './index.css'
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import ExplorerPage from './pages/ExplorerPage';
+import MusicPage from './pages/MusicPage';
+import ArtPage from './pages/ArtPage';
+import LearnPage from './pages/LearnPage';
+import AiBuilderPage from './pages/AiBuilderPage';
+import InclusivePage from './pages/InclusivePage';
+import './index.css'; // Corregido: usando index.css en lugar de App.css que no existe
 
 // Componente para exoplanetas flotantes de fondo
 function FloatingPlanets() {
@@ -49,47 +48,18 @@ function StarField() {
     const starsContainer = document.getElementById('starsContainer');
     if (starsContainer) {
       starsContainer.innerHTML = '';
-      for (let i = 0; i < 400; i++) {
+      for (let i = 0; i < 200; i++) {
         const star = document.createElement('div');
         star.className = 'star';
-        const size = Math.random() * 3 + 1;
-        star.style.width = size + 'px';
-        star.style.height = size + 'px';
         star.style.left = Math.random() * 100 + '%';
         star.style.top = Math.random() * 100 + '%';
         star.style.animationDelay = Math.random() * 3 + 's';
-        star.style.animationDuration = (Math.random() * 2 + 2) + 's';
         starsContainer.appendChild(star);
       }
     }
   }, []);
 
   return <div className="stars" id="starsContainer"></div>;
-}
-
-// Componente de navegación
-function Navigation() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  return (
-    <nav>
-      <div className="nav-container">
-        <div className="logo">
-          <img src="/logo.png" alt="ExoFeel Logo" className="logo-icon" />
-          ExoFeel
-        </div>
-        <ul className="nav-links">
-          <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Inicio</a></li>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/explorer'); }}>Explorador</a></li>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/music'); }}>Música</a></li>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/art'); }}>Arte</a></li>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/learn'); }}>Foro</a></li>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/ai'); }}>IA</a></li>
-        </ul>
-      </div>
-    </nav>
-  );
 }
 
 // Barra de accesibilidad
@@ -104,8 +74,77 @@ function AccessibilityBar({ toggleNarrator, toggleContrast, toggleVibration, tog
   );
 }
 
+// Página principal con navegación React Router
+function HomePage() {
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <header>
+        <h1>🌌 ExoFeel</h1>
+        <p className="subtitle">Exploración Multisensorial del Universo con IA</p>
+        <p style={{ marginTop: '15px', color: 'rgba(255,255,255,0.7)' }}>
+          Experimenta el cosmos a través de todos tus sentidos
+        </p>
+      </header>
+
+      <div className="galaxy-grid">
+        <div className="module-card" onClick={() => navigate('/explorer')}>
+          <span className="module-icon">🪐</span>
+          <h3 className="module-title">Explorador de Exoplanetas</h3>
+          <p className="module-description">
+            Visualiza planetas descubiertos en un mapa 3D interactivo. Cada planeta cuenta su propia historia a través de colores, sonidos y datos científicos.
+          </p>
+        </div>
+
+        <div className="module-card" onClick={() => navigate('/music')}>
+          <span className="module-icon">🎵</span>
+          <h3 className="module-title">Música Espacial</h3>
+          <p className="module-description">
+            Convierte datos astronómicos en experiencias sonoras únicas. La IA transforma órbitas y temperaturas en melodías cósmicas.
+          </p>
+        </div>
+
+        <div className="module-card" onClick={() => navigate('/art')}>
+          <span className="module-icon">🎨</span>
+          <h3 className="module-title">Arte Generativo</h3>
+          <p className="module-description">
+            Crea visualizaciones artísticas basadas en datos reales de exoplanetas. Comparte tus creaciones en la galería colaborativa.
+          </p>
+        </div>
+
+        <div className="module-card" onClick={() => navigate('/learn')}>
+          <span className="module-icon">🧠</span>
+          <h3 className="module-title">Foro</h3>
+          <p className="module-description">
+            Lecciones interactivas sobre astronomía e IA. Completa misiones educativas y desbloquea nuevos descubrimientos.
+          </p>
+        </div>
+
+        <div className="module-card" onClick={() => navigate('/ai')}>
+          <span className="module-icon">🤖</span>
+          <h3 className="module-title">Crea tu IA</h3>
+          <p className="module-description">
+            Diseña tus propios modelos de IA para analizar datos espaciales. Sin código, 100% visual e intuitivo.
+          </p>
+        </div>
+
+        <div className="module-card" onClick={() => navigate('/inclusive')}>
+          <span className="module-icon">♿</span>
+          <h3 className="module-title">Experiencia Inclusiva</h3>
+          <p className="module-description">
+            Modo accesible total con narración, vibraciones hápticas y adaptación sensorial para todos los usuarios.
+          </p>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Componente principal de la aplicación
 function App() {
   const [accessibleMode, setAccessibleMode] = useState(false);
+  const location = useLocation();
 
   // Función para síntesis de voz
   const speak = (text) => {
@@ -143,10 +182,9 @@ function App() {
     <>
       <FloatingPlanets />
       <StarField />
-      <Navigation />
       <div className="container">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/explorer" element={<ExplorerPage accessibleMode={accessibleMode} speak={speak} />} />
           <Route path="/music" element={<MusicPage accessibleMode={accessibleMode} speak={speak} />} />
           <Route path="/art" element={<ArtPage accessibleMode={accessibleMode} speak={speak} />} />
@@ -162,7 +200,16 @@ function App() {
         toggleSubtitles={toggleSubtitles}
       />
     </>
-  )
+  );
 }
 
-export default App
+// Componente wrapper con Router
+function AppWithRouter() {
+  return (
+    <Router>
+      <App />
+    </Router>
+  );
+}
+
+export default AppWithRouter;
