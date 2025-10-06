@@ -1,3 +1,5 @@
+# The webpage is located at http://44.211.93.210/
+
 # Exoplanet Explorer 
 
 An interactive web application for exploring and analyzing exoplanet data from NASA missions. Built for the **2025 NASA Space Apps Challenge**.
@@ -63,7 +65,7 @@ cp .env.example .env
 python app/main.py
 ```
 
-The backend will be available at `http://localhost:8000`
+
 
 ### 3. Frontend Setup
 ```bash
