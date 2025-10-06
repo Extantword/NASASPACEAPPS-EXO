@@ -203,6 +203,87 @@ docker-compose up --build
 3. Run backend with gunicorn: `gunicorn app.main:app`
 4. Configure reverse proxy for API endpoints
 
+### ExoPlanet Agents🌌 ExoHunter — AI & Art for Exoplanet Discovery
+🪐 Overview
+
+This project explores two complementary dimensions: scientific research and public outreach. It bridges art, music, and artificial intelligence to make exoplanet discovery both accessible and cutting-edge.
+
+🎨 Outreach Dimension
+
+We developed an interactive website to promote exoplanet hunting through art and music.
+Using the Hydra JavaScript animation library, we bring exoplanets to life with generative visuals, allowing people to grasp their characteristics at a glance.
+This artistic approach sparks curiosity, engagement, and support for astronomy research by making complex scientific ideas vivid and relatable.
+
+🧠 Research Dimension
+
+We designed an agent-based AI system capable of generating and refining data science models for exoplanet detection — targeting state-of-the-art (SOTA) performance.
+By automating idea generation and model design, researchers can prototype faster and focus on scientific reasoning rather than low-level implementation.
+
+🤖 Use of Artificial Intelligence
+
+Artificial Intelligence was central to the entire project:
+
+🚀 Vibe Coding was used for rapid prototyping and deployment.
+
+🧩 LangChain powered the creation of agentic systems that automate and optimize the research workflow.
+
+☁️ Integrated multi-cloud LLMs from Groq, SambaNova, Cerebras, and Google AI Studio.
+
+⚙️ Technical Architecture
+
+🧰 Core Components: LangChain orchestration, LLM routing, API key randomization
+
+🛰️ Research Tools:
+
+ListConfirmedExoplanetHostsTool
+
+GetStarLightCurveTool
+
+ListStarsByMissionTool
+
+GetLabeledExoplanetDatasetTool
+
+🧩 Resilient Agent Executor: Structured reasoning and error handling
+
+☁️ Deployment: Terraform + AWS (SageMaker, EC2, S3)
+
+🎛️ Visualization: Hydra-based animations for artistic and educational impact
+
+🧪 Installation
+git clone https://github.com/your-username/exohunter.git
+cd exohunter
+pip install -r requirements.txt
+
+
+Set your environment variables:
+
+export GROQ_API_KEY="your_key_here"
+export SAMBANOVA_API_KEY="your_key_here"
+export CEREBRAS_API_KEY="your_key_here"
+export GOOGLE_API_KEY="your_key_here"
+
+🚀 Run the System
+
+Generate and refine research ideas:
+
+python generate_ideas.py
+
+
+Run the main exoplanet-hunting agent:
+
+python llm_exohunter.py
+
+🌍 Impact
+
+By blending technology and creativity, this project boosts both public engagement and scientific capability.
+More curiosity → more data → better models → new discoveries.
+A true virtuous cycle between innovation and imagination.
+
+🧑‍🚀 Team
+
+Developed for the NASA Space Apps Challenge 2025 🌠
+Built with 💡 curiosity, 🎵 creativity, and 🤖 AI.
+
 ## Contributing
 
 1. Fork the repository
