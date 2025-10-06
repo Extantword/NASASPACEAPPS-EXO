@@ -79,22 +79,33 @@ resource "aws_instance" "public" {
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.sg_public_ssh.id]
   user_data                   = file("${path.module}/dat/front-user-data.sh")
+  key_name                    = aws_key_pair.generated_key.key_name
+
   tags = {
     Name  = "${var.project_name}-instance-public"
     Owner = var.owner
   }
 }
 
-# Private instance (no public IP)
-resource "aws_instance" "private" {
-  ami                         = data.aws_ami.amazon_linux_2.id
-  instance_type               = var.front_instance_type
-  subnet_id                   = aws_subnet.private.id
-  associate_public_ip_address = false
-  vpc_security_group_ids      = [aws_security_group.sg_private_http.id]
-  user_data                   = file("${path.module}/dat/front-user-data.sh") # cambiar despues de lo del free tier
+# Generar una llave privada pública local
+resource "tls_private_key" "ssh_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+# Crear el key pair en AWS usando la clave pública generada
+resource "aws_key_pair" "generated_key" {
+  key_name   = "instance_key"
+  public_key = tls_private_key.ssh_key.public_key_openssh
+
   tags = {
-    Name  = "${var.project_name}-instance-private"
     Owner = var.owner
   }
+}
+
+# Guardar la llave privada localmente (sensible)
+resource "local_sensitive_file" "private_pem" {
+  content         = tls_private_key.ssh_key.private_key_pem
+  filename        = "${path.module}/dat/key.pem"
+  file_permission = "0600"
 }

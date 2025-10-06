@@ -4,13 +4,21 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.92"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.0"
+    }
   }
 
   backend "s3" {
-    bucket         = "exo-nasa"
-    key            = "state/terraform.tfstate"
-    region         = "us-east-2"
-    encrypt        = true
+    bucket       = "exo-nasa"
+    key          = "state/terraform.tfstate"
+    region       = "us-east-2"
+    encrypt      = true
     use_lockfile = true
   }
 

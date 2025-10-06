@@ -70,3 +70,4 @@ yarn-error.log*
 *.tfvars
 *.terraform*
 *.tfsate*
+*.pem
