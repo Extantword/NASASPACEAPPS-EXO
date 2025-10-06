@@ -5,21 +5,51 @@ from langchain_groq import ChatGroq
 from langchain_sambanova import ChatSambaNovaCloud
 from langchain_core.prompts import ChatPromptTemplate
 
-from generate_ideas.generate_ideas import get_random_key_for_service
 
+from ideas_orchestator.common import colombia_now, get_random_service_key
+
+from prompt.prompt import human, system
+from cloud.cloud_constants import models_dict
+
+
+human_list = []
+
+def human_variations():
+    '''Toma el contexto humano y le añade contexto sobre la hora'''
+    global human_list
+
+    print(f"current time: {colombia_now()}")
+
+    human_hour_context = 'Redact the following prompt with your own words: "' + human +  f' First, keep in mind that the current time is sunday {colombia_now()}, so we just have that quantity of time to create, train and test the ML model'
+
+    if not human_list:
+        human_list = [obtener_respuesta('groq', "", human_hour_context,  models_dict['groq'][0]) for _ in range(5)]
+
+    return human_list
 
 def obtener_respuesta(cloud_service: str, system: str, human: str, modelo: str) -> str:
-  get_random_key_for_service(cloud_service)
   
-  if cloud_service == "groq":
-    return obtener_respuesta_groq(system, human, modelo)
-  if cloud_service == "sambanova":
-    return obtener_respuesta_sambanova(system, human, modelo)
-  if cloud_service == "cerebras":
-    return obtener_respuesta_cerebras(system, human, modelo)
-  if cloud_service == "googleaistudio":
-    return obtener_respuesta_google(system, human, modelo)
-  return "Servicio no soportado"
+    get_random_service_key(cloud_service)
+
+    # Escapar {error} en system y human para evitar KeyError en plantillas
+    system_safe = system.replace('{error}', '{{error}}') if '{error}' in system else system
+    human_safe = human.replace('{error}', '{{error}}') if '{error}' in human else human
+
+    if cloud_service == "groq":
+        result = obtener_respuesta_groq(system_safe, human_safe, modelo)
+    elif cloud_service == "sambanova":
+        result = obtener_respuesta_sambanova(system_safe, human_safe, modelo)
+    elif cloud_service == "cerebras":
+        result = obtener_respuesta_cerebras(system_safe, human_safe, modelo)
+    elif cloud_service == "googleaistudio":
+        result = obtener_respuesta_google(system_safe, human_safe, modelo)
+    else:
+        return "Servicio no soportado"
+
+    # Si el resultado es un dict con 'error', devolver el mensaje de error
+    if isinstance(result, dict) and 'error' in result:
+        return f"[ERROR]: {result['error']}"
+    return result
 
 def obtener_respuesta_groq(system: str, human: str, modelo: str) -> str:
     """
@@ -32,32 +62,19 @@ def obtener_respuesta_groq(system: str, human: str, modelo: str) -> str:
         La respuesta generada por el modelo de lenguaje.
     """
     try:
-        # Asegúrate de que la clave de API de Groq esté configurada como una variable de entorno.
-        # Puedes obtener tu clave de API en: https://console.groq.com/keys
         if "GROQ_API_KEY" not in os.environ:
-            print("Error: La variable de entorno GROQ_API_KEY no está configurada.")
-            print("Por favor, establece tu clave de API de Groq.")
-            return ""
+            return "[ERROR]: Falta la variable de entorno GROQ_API_KEY"
 
-        # Inicializa el modelo de chat de Groq.
-        # Puedes elegir diferentes modelos, como "llama3-8b-8192" o "mixtral-8x7b-32768".
         chat = ChatGroq(model_name=modelo)
-
         prompt = ChatPromptTemplate.from_messages([
             ("system", system),
             ("human", human)
         ])
-
-        # 3. Crea una cadena de LangChain
         chain = prompt | chat
-
-        # 4. Invoca la cadena con tu pregunta
-        respuesta = chain.invoke({})
-        # La respuesta es un objeto, y el contenido real del mensaje está en el atributo 'content'.
+        respuesta = chain.invoke({"system": system, "human": human})
         return respuesta.content
-
     except Exception as e:
-        return f"Ha ocurrido un error: {e}"
+        return f"[ERROR]: {e}"
 
 # Crear otras 3 funciones con las cuales podamos obtener una respuesta utilizando la libreria langchain de cada uno de los servicios cloud
 
@@ -74,44 +91,23 @@ def obtener_respuesta_sambanova(system: str, human: str, modelo: str) -> str:
         La respuesta generada por el modelo como una cadena de texto.
     """
 
-    # 2. Inicializa el modelo de chat de Google
-    # Por defecto, la API key se lee de la variable de entorno GOOGLE_API_KEY
     chat = ChatSambaNovaCloud(model=modelo, convert_system_message_to_human=True)
-
-    # 3. Crea una plantilla de prompt
-    # Nota: Algunos modelos de Gemini funcionan mejor con la instrucción del sistema
-    # convertida a un mensaje humano, de ahí el parámetro en el paso anterior.
     prompt = ChatPromptTemplate.from_messages([
         ("system", system),
         ("human", human)
     ])
-
-    # 4. Crea una cadena de LangChain
     chain = prompt | chat
-
-    # 5. Invoca la cadena. No se pasan argumentos aquí porque ya están en el prompt.
-    respuesta = chain.invoke({})
-
-    # 6. Devuelve el contenido de la respuesta
+    respuesta = chain.invoke({"system": system, "human": human})
     return respuesta.content
 
 def obtener_respuesta_cerebras(system: str, human: str, modelo: str) -> str:
-    # 1. Inicializa el modelo de chat de Cerebras
     chat = ChatCerebras(model=modelo)
-
-    # 2. Crea una plantilla de prompt
     prompt = ChatPromptTemplate.from_messages([
         ("system", system),
         ("human", human)
     ])
-
-    # 3. Crea una cadena de LangChain
     chain = prompt | chat
-
-    # 4. Invoca la cadena con tu pregunta
-    respuesta = chain.invoke({})
-
-    # 5. Imprime la respuesta
+    respuesta = chain.invoke({"system": system, "human": human})
     return respuesta.content
 
 
@@ -128,21 +124,11 @@ def obtener_respuesta_google(system: str, human: str, modelo: str) -> str:
         La respuesta generada por el modelo como una cadena de texto.
     """
 
-    # 2. Inicializa el modelo de chat de Google
-    # Por defecto, la API key se lee de la variable de entorno GOOGLE_API_KEY
     chat = ChatGoogleGenerativeAI(model=modelo, convert_system_message_to_human=True)
-
-    # 3. Crea una plantilla de prompt
     prompt = ChatPromptTemplate.from_messages([
         ("system", system),
         ("human", human)
     ])
-
-    # 4. Crea una cadena de LangChain
     chain = prompt | chat
-
-    # 5. Invoca la cadena. No se pasan argumentos aquí porque ya están en el prompt.
-    respuesta = chain.invoke({})
-
-    # 6. Devuelve el contenido de la respuesta
+    respuesta = chain.invoke({"system": system, "human": human})
     return respuesta.content

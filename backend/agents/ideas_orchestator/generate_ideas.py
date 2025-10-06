@@ -15,8 +15,9 @@ import pytz
 import random
 import time
 
-from generate_ideas.LLM_response import obtener_respuesta
-from generate_ideas.utils import colombia_now, elegir_modelo_aleatorio, get_random_service_key
+from ideas_orchestator.LLM_response import human_variations, obtener_respuesta
+from ideas_orchestator.common import elegir_modelo_aleatorio
+from ideas_orchestator.utils import get_random_service_key
 from intercept_prints import *
 from intercept_prints.intercept_prints import intercept_prints, procesar_print
 
@@ -55,7 +56,7 @@ print(f"Selected service: {service}\nAPI key: {key}")
 
 # --- Nueva Función: Árbol de Búsqueda de Ideas ---
 
-def arbol_busqueda_ideas(models_dict, system, human, X, Y):
+def arbol_busqueda_ideas(models_dict, system, X, Y):
     """
     Realiza un árbol de búsqueda para generar y refinar ideas de IA.
 
@@ -81,8 +82,7 @@ def arbol_busqueda_ideas(models_dict, system, human, X, Y):
 
 #AQUÍ SE RANDOMIZA EL HUMAN 
         
-
-        idea_actual = obtener_respuesta(cloud, system, human, model)
+        idea_actual = obtener_respuesta(cloud, system, random.choice(human_variations()), model)
         print(f"\nIDEA INICIAL {i+1}:\n'{idea_actual}'\n")
 
         # Para simular el proceso sin ejecutar el modelo real:
@@ -136,8 +136,10 @@ def arbol_busqueda_ideas(models_dict, system, human, X, Y):
     print(f"El JUEZ será: {cloud_juez}/{model_juez}")
 
 
-    # Esta llamada ahora recibirá un prompt completamente formado, sin variables de plantilla.
-    analisis_final = obtener_respuesta(cloud_juez, system, prompt_juicio, model_juez)
+
+    # Formatear el prompt_juicio con los valores correctos
+    prompt_juicio_formatted = prompt_juicio.format(X=X, ideas_to_evaluate=ideas_para_juzgar)
+    analisis_final = obtener_respuesta(cloud_juez, system, prompt_juicio_formatted, model_juez)
 
     print("\n" + "="*20)
     print("VEREDICTO FINAL DEL JUEZ")
@@ -146,8 +148,8 @@ def arbol_busqueda_ideas(models_dict, system, human, X, Y):
 
     return analisis_final
 
-@intercept_prints(procesar_print)
-def proceso_de_metajuicio(models_dict, system, human, X, Y, N_JUICIOS):
+#@intercept_prints(procesar_print)
+def proceso_de_metajuicio(models_dict, system, X, Y, N_JUICIOS):
     """
     Ejecuta el proceso de árbol de búsqueda N veces y luego realiza un
     meta-juicio sobre los veredictos para obtener una conclusión de mayor calidad.
@@ -170,7 +172,7 @@ def proceso_de_metajuicio(models_dict, system, human, X, Y, N_JUICIOS):
     # --- PASO 1: Ejecutar el proceso N veces y recoger los veredictos ---
     for n in range(N_JUICIOS):
         print(f"\n--- [META-PROCESO {n+1}/{N_JUICIOS}] ---")
-        veredicto_individual = arbol_busqueda_ideas(models_dict, system, human, X, Y)
+        veredicto_individual = arbol_busqueda_ideas(models_dict, system, X, Y)
         lista_de_veredictos.append(veredicto_individual)
         print(f"--- [FIN DEL META-PROCESO {n+1}/{N_JUICIOS}] ---\n")
 
